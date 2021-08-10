@@ -135,3 +135,6 @@ dmypy.json
 
 # Cross-Spectrum Files
 *.cs
+
+# Vi Swap files
+*.swp

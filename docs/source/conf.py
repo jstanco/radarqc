@@ -69,3 +69,7 @@ source_suffix = {
     ".txt": "markdown",
     ".md": "markdown",
 }
+
+html_sidebars = {
+    "**": ["globaltoc.html", "relations.html", "sourcelink.html", "searchbox.html"]
+}
