@@ -1,18 +1,16 @@
 # radarqc
 
-Python package for loading and processing HF radar spectra in Cross-Spectrum file format.
+Python utilities for loading and processing HF radar spectra in Cross-Spectrum file format.
 See file specification [here](http://support.codar.com/Technicians_Information_Page_for_SeaSondes/Manuals_Documentation_Release_8/File_Formats/File_Cross_Spectra_V6.pdf).
 
-## Python Package
-
-This repository provides a python package with utilities for:
+## Overview
+This repository provides a python package capable of:
   - Loading Cross-Spectrum files as Python objects containing headers and antenna spectra.
   - Serializing Python object representation as Cross-Spectrum files.
   - Preprocessing antenna spectra to calculate gain and deal with outliers.
-  - Filter spectra to reduce the effects of background noise on wave velocity calculation.
+  - Filtering spectra to reduce the effects of background noise on wave velocity calculation.
 
 ## Installation
-From within the repository:
 ```bash
 pip3 install radarqc
 ```
@@ -46,6 +44,4 @@ def example():
 The loaded `CSFile` object can be used to access file metadata via the `header` attribute,
 as well as various attributes for accessing data from individual antenna and cross-antenna spectra
 with a `numpy.ndarray` data type.
-
-
 
