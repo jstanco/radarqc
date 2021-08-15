@@ -19,20 +19,21 @@ def getargs() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def client(config: argparse.Namespace) -> None:
+def client(config: argparse.Namespace) -> int:
     with open(config.path, "rb") as f:
         raw = f.read()
 
     address = (config.address, config.port)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.connect(address)
-        sockfile = sock.makefile(mode="wb")
+        sockfile = sock.makefile(mode="wrb")
         sockfile.write(raw)
+        return int(sockfile.read(1).decode())
 
 
-def main() -> None:
+def main() -> int:
     config = getargs()
-    client(config)
+    return client(config)
 
 
 if __name__ == "__main__":

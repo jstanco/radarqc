@@ -2,7 +2,9 @@ import argparse
 import socket
 import sys
 
-from radarqc import csfile
+from typing import Callable
+
+from radarqc import csfile, CSFile
 
 
 def getargs() -> argparse.Namespace:
@@ -14,22 +16,39 @@ def getargs() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def server(config: argparse.Namespace) -> None:
-    address = (config.address, config.port)
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind(address)
-    sock.listen()
+class Server:
+    def __init__(self, config: argparse.Namespace) -> None:
+        self._callbacks = []
+        self._address = (config.address, config.port)
 
-    while True:
-        conn, _ = sock.accept()
-        sockfile = conn.makefile(mode="rb")
-        cs = csfile.load(sockfile)
-        print(cs.header)
+    def register_callback(self, callback: Callable[[CSFile], None]):
+        self._callbacks.append(callback)
+        return self
+
+    def run(self) -> None:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.bind(self._address)
+            sock.listen()
+
+            while True:
+                conn, _ = sock.accept()
+                sockfile = conn.makefile(mode="rwb")
+                cs = csfile.load(sockfile)
+                for callback in self._callbacks:
+                    callback(cs)
+                sockfile.write(str(0).encode())
+                sockfile.flush()
+                conn.close()
+
+
+def print_header(cs: CSFile) -> None:
+    print(cs.header)
 
 
 def main() -> None:
     config = getargs()
-    server(config)
+    server = Server(config).register_callback(print_header)
+    server.run()
 
 
 if __name__ == "__main__":
