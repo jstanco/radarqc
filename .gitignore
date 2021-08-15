@@ -138,3 +138,6 @@ dmypy.json
 
 # Vi Swap files
 *.swp
+
+# VSCode workspace file
+.vscode/

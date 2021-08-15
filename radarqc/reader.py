@@ -59,9 +59,8 @@ class CSFileReader:
         return unpack(f, preprocess)
 
     def _read_version(self, f: BinaryIO) -> int:
-        int_size_bytes = 4
-        buff = f.read(int_size_bytes)
-        f.seek(-int_size_bytes, io.SEEK_CUR)
+        version_size_bytes = 2
+        buff = f.read(version_size_bytes)
         (version,) = struct.unpack_from(">h", buff)
         return version
 
@@ -78,7 +77,7 @@ class CSFileReader:
 
     def _read_header_v6(self, reader: BinaryReader) -> CSFileHeader:
         header = CSFileHeader()
-        header.version = reader.read_int16()
+        header.version = 6
         header.timestamp = self._parse_timestamp(reader.read_uint32())
         reader.read_int32()  # v1_extent
         # end v1
