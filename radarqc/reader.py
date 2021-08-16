@@ -14,7 +14,45 @@ from radarqc.serialization import BinaryReader, ByteOrder
 from radarqc.spectrum import Spectrum
 
 
+class ClassRegistryError(Exception):
+    """Custom exception handling case where multiple classes have been
+    registered to handle deserializing the same block tag"""
+
+    def __init__(self, subclass: type, tag: str) -> None:
+        message = (
+            "Cannot register two CSBlockReader subclasses for tag '{}'.".format(
+                tag
+            )
+        )
+        super().__init__(message)
+        self.subclass = subclass
+        self.tag = tag
+
+
 class _CSBlockReader(abc.ABC):
+    __readers = {}
+
+    def __init_subclass__(cls, /, tag: str, **kwargs) -> None:
+        super().__init_subclass__(**kwargs)
+        try:
+            _CSBlockReader.__readers[tag]
+        except KeyError:
+            _CSBlockReader.__readers[tag] = cls
+        else:
+            raise ClassRegistryError(
+                subclass=cls,
+                tag=tag,
+            )
+
+    @staticmethod
+    def __getreadercls(tag: str) -> type:
+        return _CSBlockReader.__readers.get(tag, _RawBlockReader)
+
+    @staticmethod
+    def create(tag: str):
+        reader_cls = _CSBlockReader.__getreadercls(tag)
+        return reader_cls()
+
     def read_block(
         self, reader: BinaryReader, block_size: int, header: CSFileHeader
     ):
@@ -27,7 +65,57 @@ class _CSBlockReader(abc.ABC):
         """Subclasses will represent different blocks"""
 
 
-class _RawBlockReader(_CSBlockReader):
+class _CSBlockReaderTIME(_CSBlockReader, tag="TIME"):
+    def _read_block(
+        self, reader: BinaryReader, block_size: int, header: CSFileHeader
+    ):
+        return reader.read_bytes(block_size)
+
+
+class _CSBlockReaderZONE(_CSBlockReader, tag="ZONE"):
+    def _read_block(
+        self, reader: BinaryReader, block_size: int, header: CSFileHeader
+    ):
+        return reader.read_bytes(block_size)
+
+
+class _CSBlockReaderLOCA(_CSBlockReader, tag="LOCA"):
+    def _read_block(
+        self, reader: BinaryReader, block_size: int, header: CSFileHeader
+    ):
+        return reader.read_bytes(block_size)
+
+
+class _CSBlockReaderRCVI(_CSBlockReader, tag="RCVI"):
+    def _read_block(
+        self, reader: BinaryReader, block_size: int, header: CSFileHeader
+    ):
+        return reader.read_bytes(block_size)
+
+
+class _CSBlockReaderGLRM(_CSBlockReader, tag="GLRM"):
+    def _read_block(
+        self, reader: BinaryReader, block_size: int, header: CSFileHeader
+    ):
+        return reader.read_bytes(block_size)
+
+
+class _CSBlockReaderFOLS(_CSBlockReader, tag="FOLS"):
+    def _read_block(
+        self, reader: BinaryReader, block_size: int, header: CSFileHeader
+    ):
+        return reader.read_bytes(block_size)
+
+
+class _CSBlockReaderEND6(_CSBlockReader, tag="END6"):
+    def _read_block(
+        self, reader: BinaryReader, block_size: int, header: CSFileHeader
+    ):
+        reader.read_bytes(block_size)
+        return b"".decode()
+
+
+class _RawBlockReader(_CSBlockReader, tag=None):
     def _read_block(
         self, reader: BinaryReader, block_size: int, header: CSFileHeader
     ):
@@ -36,9 +124,6 @@ class _RawBlockReader(_CSBlockReader):
 
 class CSFileReader:
     """Responsible for parsing binary data encoded in Cross-Spectrum files"""
-
-    # TODO: build block parsing map
-    _BLOCK_READERS = defaultdict(_RawBlockReader)
 
     def load(
         self, f: BinaryIO, preprocess: SignalProcessor
@@ -65,7 +150,8 @@ class CSFileReader:
         return version
 
     def _get_block_parser(self, block_key: str) -> _CSBlockReader:
-        return self._BLOCK_READERS[block_key]
+        # return self._BLOCK_READERS[block_key]
+        return _CSBlockReader.create(block_key)
 
     def _read_buff_v6(
         self, f: BinaryIO, preprocess: SignalProcessor
