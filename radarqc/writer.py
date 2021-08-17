@@ -1,19 +1,28 @@
 import abc
 import io
 import datetime
-import struct
 
-from collections import defaultdict
 from typing import Any, BinaryIO
 
 import numpy as np
 
 from radarqc.header import CSFileHeader
+from radarqc.registry import ClassRegistry
 from radarqc.serialization import BinaryWriter, ByteOrder
 from radarqc.spectrum import Spectrum
 
 
 class _CSBlockWriter(abc.ABC):
+    __registry = ClassRegistry()
+
+    def __init_subclass__(cls, /, tag: str, **kwargs) -> None:
+        super().__init_subclass__(**kwargs)
+        _CSBlockWriter.__registry.register(tag, _CSBlockWriter, cls)
+
+    @staticmethod
+    def create(tag: str):
+        return _CSBlockWriter.__registry.create(tag, _RawBlockWriter)
+
     def write_block(self, writer: BinaryWriter, block: Any) -> None:
         return self._write_block(writer, block)
 
@@ -22,16 +31,131 @@ class _CSBlockWriter(abc.ABC):
         """Subclasses will represent different blocks"""
 
 
-class _RawBlockWriter(_CSBlockWriter):
+class _RawBlockWriter(_CSBlockWriter, tag=None):
     def _write_block(self, writer: BinaryWriter, block: bytes) -> None:
         return writer.write_bytes(block)
+
+
+class _CSBlockWriterTIME(_CSBlockWriter, tag="TIME"):
+    def _write_block(self, writer: BinaryWriter, block: bytes) -> None:
+        writer.write_uint8(block["time_mark"])
+        writer.write_uint16(block["year"])
+        writer.write_uint8(block["month"])
+        writer.write_uint8(block["day"])
+        writer.write_uint8(block["hour"])
+        writer.write_uint8(block["minute"])
+        writer.write_double(block["seconds"])
+        writer.write_double(block["coverage_seconds"])
+        writer.write_double(block["hours_from_utc"])
+
+
+class _CSBlockWriterZONE(_CSBlockWriter, tag="ZONE"):
+    def _write_block(self, writer: BinaryWriter, block: str) -> None:
+        return writer.write_string(block)
+
+
+class _CSBlockWriterCITY(_CSBlockWriter, tag="CITY"):
+    def _write_block(self, writer: BinaryWriter, block: str) -> None:
+        return writer.write_string(block)
+
+
+class _CSBlockWriterLOCA(_CSBlockWriter, tag="LOCA"):
+    def _write_block(self, writer: BinaryWriter, block: dict) -> None:
+        writer.write_double(block["latitude"])
+        writer.write_double(block["longitude"])
+        writer.write_double(block["altitude_meters"])
+
+
+class _CSBlockWriterSITD(_CSBlockWriter, tag="SITD"):
+    def _write_block(self, writer: BinaryWriter, block: str) -> None:
+        return writer.write_string(block)
+
+
+class _CSBlockWriterRCVI(_CSBlockWriter, tag="RCVI"):
+    def _write_block(self, writer: BinaryWriter, block: dict) -> None:
+        writer.write_uint32(block["receiver_model"])
+        writer.write_uint32(block["antenna_model"])
+        writer.write_double(block["reference_gain_db"])
+        writer.write_string(block["firmware"])
+
+
+class _CSBlockWriterTOOL(_CSBlockWriter, tag="TOOL"):
+    def _write_block(self, writer: BinaryWriter, block: str) -> None:
+        return writer.write_string(block)
+
+
+class _CSBlockWriterGLRM(_CSBlockWriter, tag="GLRM"):
+    def _write_block(self, writer: BinaryWriter, block: dict) -> None:
+        writer.write_uint8(block["method"])
+        writer.write_uint8(block["version"])
+        writer.write_uint32(block["num_points_removed"])
+        writer.write_uint32(block["num_times_removed"])
+        writer.write_uint32(block["num_segments_removed"])
+        writer.write_double(block["point_power_threshold"])
+        writer.write_double(block["range_power_threshold"])
+        writer.write_double(block["range_bin_threshold"])
+        writer.write_uint8(int(block["remove_dc"]))
+
+
+class _CSBlockWriterSUPI(_CSBlockWriter, tag="SUPI"):
+    def _write_block(self, writer: BinaryWriter, block: Any) -> None:
+        return writer.write_bytes(block)
+
+
+class _CSBlockWriterSUPM(_CSBlockWriter, tag="SUPM"):
+    def _write_block(self, writer: BinaryWriter, block: Any) -> None:
+        return writer.write_bytes(block)
+
+
+class _CSBlockWriterSUPP(_CSBlockWriter, tag="SUPP"):
+    def _write_block(self, writer: BinaryWriter, block: Any) -> None:
+        return writer.write_bytes(block)
+
+
+class _CSBlockWriterANTG(_CSBlockWriter, tag="ANTG"):
+    def _write_block(self, writer: BinaryWriter, block: Any) -> None:
+        return writer.write_bytes(block)
+
+
+class _CSBlockWriterFWIN(_CSBlockWriter, tag="FWIN"):
+    def _write_block(self, writer: BinaryWriter, block: Any) -> None:
+        return writer.write_bytes(block)
+
+
+class _CSBlockWriterIQAP(_CSBlockWriter, tag="IQAP"):
+    def _write_block(self, writer: BinaryWriter, block: Any) -> None:
+        return writer.write_bytes(block)
+
+
+class _CSBlockWriterFILL(_CSBlockWriter, tag="FILL"):
+    def _write_block(self, writer: BinaryWriter, block: Any) -> None:
+        return writer.write_bytes(block)
+
+
+class _CSBlockWriterFOLS(_CSBlockWriter, tag="FOLS"):
+    def _write_block(self, writer: BinaryWriter, block: list) -> None:
+        for indices in block:
+            writer.write_int32(indices)
+
+
+class _CSBlockWriterWOLS(_CSBlockWriter, tag="WOLS"):
+    def _write_block(self, writer: BinaryWriter, block: Any) -> None:
+        return writer.write_bytes(block)
+
+
+class _CSBlockWriterBRGR(_CSBlockWriter, tag="BRGR"):
+    def _write_block(self, writer: BinaryWriter, block: Any) -> None:
+        return writer.write_bytes(block)
+
+
+class _CSBlockWriterEND6(_CSBlockWriter, tag="END6"):
+    def _write_block(self, writer: BinaryWriter, block: str) -> None:
+        return writer.write_string(block)
 
 
 class CSFileWriter:
     """Responsible for parsing binary data encoded in Cross-Spectrum files"""
 
-    # TODO: build block parsing map
-    _BLOCK_WRITERS = defaultdict(_RawBlockWriter)
     _V1_SIZE = 10
     _V2_SIZE = 16
     _V3_SIZE = 24
@@ -52,7 +176,7 @@ class CSFileWriter:
         pack(header, spectrum, f)
 
     def _get_block_parser(self, block_key: str) -> _CSBlockWriter:
-        return self._BLOCK_WRITERS[block_key]
+        return _CSBlockWriter.create(block_key)
 
     def _get_raw_timestamp(self, timestamp: datetime.datetime) -> int:
         start = datetime.datetime(year=1904, month=1, day=1)
@@ -88,7 +212,7 @@ class CSFileWriter:
     def _serialize_blocks(self, header: CSFileHeader) -> dict:
         raw_blocks = {}
         for block_key, block in header.blocks.items():
-            block_writer = self._BLOCK_WRITERS[block_key]
+            block_writer = self._get_block_parser(block_key)
             blockio = io.BytesIO()
             writer = BinaryWriter(blockio, ByteOrder.BIG_ENDIAN)
             block_writer.write_block(writer, block)

@@ -1,57 +1,28 @@
 import abc
-import io
 import datetime
 import struct
 
-from collections import defaultdict
 from typing import BinaryIO, Tuple
 
 import numpy as np
 
 from radarqc.header import CSFileHeader
 from radarqc.processing import SignalProcessor
+from radarqc.registry import ClassRegistry
 from radarqc.serialization import BinaryReader, ByteOrder
 from radarqc.spectrum import Spectrum
 
 
-class ClassRegistryError(Exception):
-    """Custom exception handling case where multiple classes have been
-    registered to handle deserializing the same block tag"""
-
-    def __init__(self, subclass: type, tag: str) -> None:
-        message = (
-            "Cannot register two CSBlockReader subclasses for tag '{}'.".format(
-                tag
-            )
-        )
-        super().__init__(message)
-        self.subclass = subclass
-        self.tag = tag
-
-
 class _CSBlockReader(abc.ABC):
-    __readers = {}
+    __registry = ClassRegistry()
 
     def __init_subclass__(cls, /, tag: str, **kwargs) -> None:
         super().__init_subclass__(**kwargs)
-        try:
-            _CSBlockReader.__readers[tag]
-        except KeyError:
-            _CSBlockReader.__readers[tag] = cls
-        else:
-            raise ClassRegistryError(
-                subclass=cls,
-                tag=tag,
-            )
-
-    @staticmethod
-    def __getreadercls(tag: str) -> type:
-        return _CSBlockReader.__readers.get(tag, _RawBlockReader)
+        _CSBlockReader.__registry.register(tag, _CSBlockReader, cls)
 
     @staticmethod
     def create(tag: str):
-        reader_cls = _CSBlockReader.__getreadercls(tag)
-        return reader_cls()
+        return _CSBlockReader.__registry.create(tag, _RawBlockReader)
 
     def read_block(
         self, reader: BinaryReader, block_size: int, header: CSFileHeader
@@ -65,35 +36,149 @@ class _CSBlockReader(abc.ABC):
         """Subclasses will represent different blocks"""
 
 
-class _CSBlockReaderTIME(_CSBlockReader, tag="TIME"):
+class _RawBlockReader(_CSBlockReader, tag=None):
     def _read_block(
         self, reader: BinaryReader, block_size: int, header: CSFileHeader
     ):
         return reader.read_bytes(block_size)
+
+
+class _CSBlockReaderTIME(_CSBlockReader, tag="TIME"):
+    def _read_block(
+        self, reader: BinaryReader, block_size: int, header: CSFileHeader
+    ) -> dict:
+        time_mark = reader.read_uint8()
+        year = reader.read_uint16()
+        month, day, hour, minute = reader.read_uint8(4)
+        seconds, coverage_seconds, from_utc = reader.read_double(3)
+        return {
+            "time_mark": time_mark,
+            "year": year,
+            "month": month,
+            "day": day,
+            "hour": hour,
+            "minute": minute,
+            "seconds": seconds,
+            "coverage_seconds": coverage_seconds,
+            "hours_from_utc": from_utc,
+        }
 
 
 class _CSBlockReaderZONE(_CSBlockReader, tag="ZONE"):
     def _read_block(
         self, reader: BinaryReader, block_size: int, header: CSFileHeader
-    ):
-        return reader.read_bytes(block_size)
+    ) -> str:
+        return reader.read_string(block_size)
+
+
+class _CSBlockReaderCITY(_CSBlockReader, tag="CITY"):
+    def _read_block(
+        self, reader: BinaryReader, block_size: int, header: CSFileHeader
+    ) -> str:
+        return reader.read_string(block_size)
 
 
 class _CSBlockReaderLOCA(_CSBlockReader, tag="LOCA"):
     def _read_block(
         self, reader: BinaryReader, block_size: int, header: CSFileHeader
     ):
-        return reader.read_bytes(block_size)
+        lat, lon, alt = reader.read_double(3)
+        return {"latitude": lat, "longitude": lon, "altitude_meters": alt}
+
+
+class _CSBlockReaderSITD(_CSBlockReader, tag="SITD"):
+    def _read_block(
+        self, reader: BinaryReader, block_size: int, header: CSFileHeader
+    ) -> str:
+        return reader.read_string(block_size)
 
 
 class _CSBlockReaderRCVI(_CSBlockReader, tag="RCVI"):
+    def _read_block(
+        self, reader: BinaryReader, block_size: int, header: CSFileHeader
+    ) -> dict:
+        recv_model, ant_model = reader.read_uint32(2)
+        refgain_db = reader.read_double()
+        firmware = reader.read_string(32)
+        return {
+            "receiver_model": recv_model,
+            "antenna_model": ant_model,
+            "reference_gain_db": refgain_db,
+            "firmware": firmware,
+        }
+
+
+class _CSBlockReaderTOOL(_CSBlockReader, tag="TOOL"):
+    def _read_block(
+        self, reader: BinaryReader, block_size: int, header: CSFileHeader
+    ) -> str:
+        return reader.read_string(block_size)
+
+
+class _CSBlockReaderGLRM(_CSBlockReader, tag="GLRM"):
+    def _read_block(
+        self, reader: BinaryReader, block_size: int, header: CSFileHeader
+    ) -> dict:
+        method, version = reader.read_uint8(2)
+        points, times, segments = reader.read_uint32(3)
+        point_thresh, range_thresh, bin_thresh = reader.read_double(3)
+        remove_dc = bool(reader.read_uint8())
+        return {
+            "method": method,
+            "version": version,
+            "num_points_removed": points,
+            "num_times_removed": times,
+            "num_segments_removed": segments,
+            "point_power_threshold": point_thresh,
+            "range_power_threshold": range_thresh,
+            "range_bin_threshold": bin_thresh,
+            "remove_dc": remove_dc,
+        }
+
+
+class _CSBlockReaderSUPI(_CSBlockReader, tag="SUPI"):
     def _read_block(
         self, reader: BinaryReader, block_size: int, header: CSFileHeader
     ):
         return reader.read_bytes(block_size)
 
 
-class _CSBlockReaderGLRM(_CSBlockReader, tag="GLRM"):
+class _CSBlockReaderSUPM(_CSBlockReader, tag="SUPM"):
+    def _read_block(
+        self, reader: BinaryReader, block_size: int, header: CSFileHeader
+    ):
+        return reader.read_bytes(block_size)
+
+
+class _CSBlockReaderSUPP(_CSBlockReader, tag="SUPP"):
+    def _read_block(
+        self, reader: BinaryReader, block_size: int, header: CSFileHeader
+    ):
+        return reader.read_bytes(block_size)
+
+
+class _CSBlockReaderANTG(_CSBlockReader, tag="ANTG"):
+    def _read_block(
+        self, reader: BinaryReader, block_size: int, header: CSFileHeader
+    ):
+        return reader.read_bytes(block_size)
+
+
+class _CSBlockReaderFWIN(_CSBlockReader, tag="FWIN"):
+    def _read_block(
+        self, reader: BinaryReader, block_size: int, header: CSFileHeader
+    ):
+        return reader.read_bytes(block_size)
+
+
+class _CSBlockReaderIQAP(_CSBlockReader, tag="IQAP"):
+    def _read_block(
+        self, reader: BinaryReader, block_size: int, header: CSFileHeader
+    ):
+        return reader.read_bytes(block_size)
+
+
+class _CSBlockReaderFILL(_CSBlockReader, tag="FILL"):
     def _read_block(
         self, reader: BinaryReader, block_size: int, header: CSFileHeader
     ):
@@ -104,22 +189,28 @@ class _CSBlockReaderFOLS(_CSBlockReader, tag="FOLS"):
     def _read_block(
         self, reader: BinaryReader, block_size: int, header: CSFileHeader
     ):
+        return [reader.read_int32(4) for _ in range(header.num_range_cells)]
+
+
+class _CSBlockReaderWOLS(_CSBlockReader, tag="WOLS"):
+    def _read_block(
+        self, reader: BinaryReader, block_size: int, header: CSFileHeader
+    ):
+        return reader.read_bytes(block_size)
+
+
+class _CSBlockReaderBRGR(_CSBlockReader, tag="BRGR"):
+    def _read_block(
+        self, reader: BinaryReader, block_size: int, header: CSFileHeader
+    ):
         return reader.read_bytes(block_size)
 
 
 class _CSBlockReaderEND6(_CSBlockReader, tag="END6"):
     def _read_block(
         self, reader: BinaryReader, block_size: int, header: CSFileHeader
-    ):
-        reader.read_bytes(block_size)
-        return b"".decode()
-
-
-class _RawBlockReader(_CSBlockReader, tag=None):
-    def _read_block(
-        self, reader: BinaryReader, block_size: int, header: CSFileHeader
-    ):
-        return reader.read_bytes(block_size)
+    ) -> str:
+        return reader.read_string(block_size)
 
 
 class CSFileReader:

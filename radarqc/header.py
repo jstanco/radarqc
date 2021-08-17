@@ -1,4 +1,5 @@
 import datetime
+import pprint
 
 from typing import Any
 from collections import OrderedDict
@@ -51,5 +52,8 @@ class CSFileHeader:
             for k, v in self.__dict.items()
             if k != "blocks"
         )
-        blocks = ("- {:24s} {}".format(k, v) for k, v in self.blocks.items())
+        blocks = (
+            "- {}: {}".format(k, pprint.pformat(v))
+            for k, v in self.blocks.items()
+        )
         return "\n".join((title, *fields, *blocks))
