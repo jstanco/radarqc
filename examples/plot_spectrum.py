@@ -20,6 +20,7 @@ def plot_spectrum(cs: csfile.CSFile) -> None:
     ranges = cs.header.range_cell_dist_km * np.arange(
         0, cs.header.num_range_cells
     )
+
     freqs = (
         cs.header.rep_freq_mhz
         + 0.001
@@ -27,10 +28,19 @@ def plot_spectrum(cs: csfile.CSFile) -> None:
         * np.linspace(-0.5, 0.5, num=cs.header.num_doppler_cells, endpoint=True)
     )
 
-    plt.pcolormesh(freqs, ranges, 10 * np.log10(cs.antenna1))
-    plt.title("Range-Dependent Power Spectral Density (Antenna 1)")
-    plt.ylabel("Range [km]")
-    plt.xlabel("Frequency [MHz]")
+    spectra = cs.antenna1, cs.antenna2, cs.antenna3
+
+    # Plot each slice as an independent subplot
+    fig, axes = plt.subplots(nrows=len(spectra), ncols=1)
+    for i, (spectrum, ax) in enumerate(zip(spectra, axes.flat)):
+        ax.pcolor(freqs, ranges, 10 * np.log10(spectrum))
+        ax.set_ylabel("Range [km]")
+        ax.set_xlabel("Frequency [MHz]")
+        ax.set_title(
+            "Range-Dependent Power Spectral Density (Antenna {})".format(i)
+        )
+
+    fig.tight_layout()
     plt.show()
 
 
