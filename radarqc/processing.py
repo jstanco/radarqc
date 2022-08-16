@@ -16,13 +16,15 @@ class SignalProcessor(abc.ABC):
 
 class GainCalculator(SignalProcessor):
     """Convert the signal from raw Voltages into dB, given some
-    reference gain as a baseline"""
+    reference gain as a baseline.  The impedance argument specifies the
+    impedance of the rf frontend"""
 
-    def __init__(self, reference: float) -> None:
+    def __init__(self, reference: float = 0, impedance: float = 50) -> None:
         self._reference = reference
+        self._impedance = impedance
 
     def _process(self, signal: np.ndarray) -> np.ndarray:
-        return 10 * np.log(signal) - self._reference
+        return 10 * np.log10(signal**2 / self._impedance) - self._reference
 
 
 class Rectifier(SignalProcessor):

@@ -356,7 +356,7 @@ class CSFileReader:
             np.stack(c12),
             np.stack(c13),
             np.stack(c23),
-            q,
+            np.stack(q),
             preprocess,
         )
 

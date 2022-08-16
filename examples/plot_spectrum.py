@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from radarqc import csfile
+from radarqc.processing import GainCalculator
 
 
 def getargs() -> argparse.Namespace:
@@ -33,11 +34,11 @@ def plot_spectrum(cs: csfile.CSFile) -> None:
     # Plot each slice as an independent subplot
     fig, axes = plt.subplots(nrows=len(spectra), ncols=1)
     for i, (spectrum, ax) in enumerate(zip(spectra, axes.flat)):
-        ax.pcolor(freqs, ranges, 10 * np.log10(spectrum))
+        ax.pcolor(freqs, ranges, spectrum)
         ax.set_ylabel("Range [km]")
         ax.set_xlabel("Frequency [MHz]")
         ax.set_title(
-            "Range-Dependent Power Spectral Density (Antenna {})".format(i)
+            "Range-Dependent Power Spectral Density (Antenna {})".format(i + 1)
         )
 
     fig.tight_layout()
@@ -47,7 +48,7 @@ def plot_spectrum(cs: csfile.CSFile) -> None:
 def main():
     config = getargs()
     with open(config.path, "rb") as f:
-        plot_spectrum(cs=csfile.load(f))
+        plot_spectrum(cs=csfile.load(f, preprocess=GainCalculator()))
 
 
 if __name__ == "__main__":
