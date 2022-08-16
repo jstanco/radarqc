@@ -12,7 +12,9 @@ def getargs() -> argparse.Namespace:
     parser.add_argument(
         "-a", "--address", type=str, help="Host IPv4 address", default="0.0.0.0"
     )
-    parser.add_argument("-p", "--port", type=int, help="Host port")
+    parser.add_argument(
+        "-p", "--port", type=int, help="Host port", required=True
+    )
     return parser.parse_args()
 
 
@@ -46,9 +48,7 @@ def print_header(cs: CSFile) -> None:
 
 
 def main() -> None:
-    config = getargs()
-    server = Server(config).register_callback(print_header)
-    server.run()
+    Server(config=getargs()).register_callback(callback=print_header).run()
 
 
 if __name__ == "__main__":

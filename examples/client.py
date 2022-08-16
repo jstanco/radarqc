@@ -15,7 +15,9 @@ def getargs() -> argparse.Namespace:
         help="Host IPv4 address",
         default="127.0.0.1",
     )
-    parser.add_argument("-p", "--port", type=int, help="Host port")
+    parser.add_argument(
+        "-p", "--port", type=int, help="Host port", required=True
+    )
     return parser.parse_args()
 
 
