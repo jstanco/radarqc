@@ -230,7 +230,7 @@ class CSFileReader:
     def load(
         self, f: BinaryIO, preprocess: SignalProcessor
     ) -> Tuple[CSFileHeader, Spectrum]:
-        reader = BinaryReader(f, ByteOrder.BIG_ENDIAN)
+        reader = BinaryReader(f, ByteOrder.NETWORK)
         header = self._read_header(reader, version=reader.read_int16())
         spectrum = self._read_spectrum(reader, header, preprocess)
         return header, spectrum

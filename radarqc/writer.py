@@ -165,7 +165,7 @@ class CSFileWriter:
     def dump(
         self, header: CSFileHeader, spectrum: Spectrum, f: BinaryIO
     ) -> None:
-        writer = BinaryWriter(f, ByteOrder.BIG_ENDIAN)
+        writer = BinaryWriter(f, ByteOrder.NETWORK)
         self._write_header(header, writer)
         self._write_spectrum_data(header, spectrum, writer)
 
@@ -221,10 +221,10 @@ class CSFileWriter:
         raw_blocks = {}
         for block_key, block in header.blocks.items():
             block_writer = self._get_block_parser(block_key)
-            blockio = io.BytesIO()
-            writer = BinaryWriter(blockio, ByteOrder.BIG_ENDIAN)
+            in_memory_file = io.BytesIO()
+            writer = BinaryWriter(in_memory_file, ByteOrder.NETWORK)
             block_writer.write_block(writer, block)
-            raw_blocks[block_key] = blockio.getbuffer()
+            raw_blocks[block_key] = in_memory_file.getbuffer()
         return raw_blocks
 
     def _write_header_bytes_v1(

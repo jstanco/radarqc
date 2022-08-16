@@ -17,7 +17,6 @@ class Spectrum:
         quality: np.ndarray,
         preprocess: SignalProcessor,
     ) -> None:
-
         self.antenna1 = preprocess(antenna1, preprocess)
         self.antenna2 = preprocess(antenna2, preprocess)
         self.antenna3 = preprocess(antenna3, preprocess)
