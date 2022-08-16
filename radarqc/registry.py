@@ -19,7 +19,7 @@ class ClassRegistryError(Exception):
 
 class ClassRegistry:
     def __init__(self) -> None:
-        self._registry = {}
+        self._registry: dict = {}
 
     def register(self, tag: str, parent: type, subclass: type) -> None:
         try:
@@ -33,6 +33,6 @@ class ClassRegistry:
                 tag=tag,
             )
 
-    def create(self, tag, default: type) -> Any:
+    def make(self, tag, default: type) -> Any:
         cls = self._registry.get(tag, default)
         return cls()

@@ -18,22 +18,16 @@ class Spectrum:
         preprocess: SignalProcessor,
     ) -> None:
 
-        self.antenna1 = self._create_real_signal(antenna1, preprocess)
-        self.antenna2 = self._create_real_signal(antenna2, preprocess)
-        self.antenna3 = self._create_real_signal(antenna3, preprocess)
-        self.cross12 = self._create_complex_signal(cross12, preprocess)
-        self.cross13 = self._create_complex_signal(cross13, preprocess)
-        self.cross23 = self._create_complex_signal(cross23, preprocess)
-        self.quality = self._create_real_signal(quality, preprocess)
+        self.antenna1 = preprocess(antenna1, preprocess)
+        self.antenna2 = preprocess(antenna2, preprocess)
+        self.antenna3 = preprocess(antenna3, preprocess)
+        self.cross12 = self._preprocess_complex_signal(cross12, preprocess)
+        self.cross13 = self._preprocess_complex_signal(cross13, preprocess)
+        self.cross23 = self._preprocess_complex_signal(cross23, preprocess)
+        self.quality = preprocess(quality, preprocess)
 
-    def _create_real_signal(
+    def _preprocess_complex_signal(
         self, raw: np.ndarray, preprocess: SignalProcessor
     ) -> None:
-        return preprocess(raw)
-
-    def _create_complex_signal(
-        self, raw: np.ndarray, preprocess: SignalProcessor
-    ) -> None:
-        real = preprocess(raw.real)
-        imag = preprocess(raw.imag)
+        real, imag = preprocess(raw.real), preprocess(raw.imag)
         return real + 1j * imag

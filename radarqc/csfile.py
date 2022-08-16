@@ -1,5 +1,4 @@
 import io
-
 from typing import BinaryIO, Optional
 
 import numpy as np

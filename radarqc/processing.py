@@ -55,7 +55,7 @@ class CompositeProcessor(SignalProcessor):
     """Represents a  composition of multiple processors into a single
     processor, allowing for creation of custom processing pipelines"""
 
-    def __init__(self, *processors) -> None:
+    def __init__(self, *processors: SignalProcessor) -> None:
         self._processors = processors
 
     def _process(self, signal: np.ndarray) -> np.ndarray:
@@ -65,7 +65,10 @@ class CompositeProcessor(SignalProcessor):
 
 
 class Identity(SignalProcessor):
-    """Does nothing, returns the input signal without copying"""
+    """Does nothing, a.k.a. returns the input signal."""
+
+    def __init__(self, copy: bool = False) -> None:
+        self._copy = copy
 
     def _process(self, signal: np.ndarray) -> np.ndarray:
-        return signal
+        return signal.copy() if self._copy else signal

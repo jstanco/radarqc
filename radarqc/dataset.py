@@ -16,13 +16,11 @@ class DataSet:
     def __init__(
         self, paths: Iterable[str], preprocess: SignalProcessor
     ) -> None:
-        files = (self._load_spectrum(path, preprocess) for path in paths)
-        spectra, headers = [], []
-        for f in files:
-            spectra.append(f.antenna3)
-            headers.append(f.header)
+        self._headers, spectra = [], []
+        for cs in self._load_cs_files(paths, preprocess):
+            self._headers.append(cs.header)
+            spectra.append(cs.antenna3)
         self._spectra = np.stack(spectra)
-        self._headers = headers
 
     @property
     def spectra(self) -> np.ndarray:
@@ -36,6 +34,9 @@ class DataSet:
         for each input path"""
         return self._headers
 
-    def _load_spectrum(self, path: str, preprocess: SignalProcessor) -> CSFile:
-        with open(path, "rb") as f:
-            return csfile.load(f, preprocess)
+    def _load_cs_files(
+        self, paths: Iterable[str], preprocess: SignalProcessor
+    ) -> Iterable[CSFile]:
+        for path in paths:
+            with open(path, "rb") as f:
+                yield csfile.load(f, preprocess)

@@ -80,13 +80,10 @@ class BinaryReader:
         return self._read("d", size=8, n=n)
 
     def _read(self, fmt: str, size: int, n: int) -> Any:
-        num_bytes = size * n
-        buff = self._file.read(num_bytes)
-        return self._unpack_bytes(fmt, buff, n)
+        return self._unpack_bytes(fmt, self._file.read(size * n), n)
 
     def _unpack_bytes(self, fmt: str, buff: bytes, n: int) -> Any:
-        full_fmt = self._formatter.create_format(fmt, n)
-        data = struct.unpack(full_fmt, buff)
+        data = struct.unpack(self._formatter.create_format(fmt, n), buff)
         if n == 1:
             return data[0]
         return data
@@ -139,16 +136,12 @@ class BinaryWriter:
     def write_double(self, buff: Union[float, Iterable[float]]) -> None:
         return self._write(buff, "d")
 
-    def _write_bytes(self, buff: bytes) -> None:
-        self._file.write(buff)
-
     def _write(self, data: Any, fmt: str) -> Any:
-        buff = self._pack_buff(data, fmt)
-        self._write_bytes(buff)
+        self._file.write(self._pack_bytes(data, fmt))
 
-    def _pack_buff(self, data: Any, fmt: str) -> bytes:
+    def _pack_bytes(self, data: Any, fmt: str) -> bytes:
         if hasattr(data, "__len__"):
-            full_fmt = self._formatter.create_format(fmt, len(data))
-            return struct.pack(full_fmt, *data)
-        full_fmt = self._formatter.create_format(fmt, 1)
-        return struct.pack(full_fmt, data)
+            return struct.pack(
+                self._formatter.create_format(fmt, len(data)), *data
+            )
+        return struct.pack(self._formatter.create_format(fmt, 1), data)
