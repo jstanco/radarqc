@@ -240,7 +240,7 @@ class CSFileReader:
         return start + datetime.timedelta(seconds=seconds)
 
     def _get_block_parser(self, block_key: str) -> _CSBlockReader:
-        return _CSBlockReader.create(block_key)
+        return _CSBlockReader.make(block_key)
 
     def _read_header_bytes_v1(
         self, reader: BinaryReader, header: CSFileHeader

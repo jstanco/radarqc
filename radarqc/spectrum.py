@@ -17,13 +17,13 @@ class Spectrum:
         quality: np.ndarray,
         preprocess: SignalProcessor,
     ) -> None:
-        self.antenna1 = preprocess(antenna1, preprocess)
-        self.antenna2 = preprocess(antenna2, preprocess)
-        self.antenna3 = preprocess(antenna3, preprocess)
+        self.antenna1 = preprocess(antenna1)
+        self.antenna2 = preprocess(antenna2)
+        self.antenna3 = preprocess(antenna3)
         self.cross12 = self._preprocess_complex_signal(cross12, preprocess)
         self.cross13 = self._preprocess_complex_signal(cross13, preprocess)
         self.cross23 = self._preprocess_complex_signal(cross23, preprocess)
-        self.quality = preprocess(quality, preprocess)
+        self.quality = preprocess(quality)
 
     def _preprocess_complex_signal(
         self, raw: np.ndarray, preprocess: SignalProcessor

@@ -228,26 +228,26 @@ class CSFileWriter:
         return raw_blocks
 
     def _write_header_bytes_v1(
-        self, writer: BinaryWriter, header: CSFileHeader, header_size: int
+        self, header: CSFileHeader, header_size: int, writer: BinaryWriter
     ) -> None:
         writer.write_int16(header.version)
         writer.write_uint32(self._get_raw_timestamp(header.timestamp))
         writer.write_int32(self._calculate_v1_extent(header_size))
 
     def _write_header_bytes_v2(
-        self, writer: BinaryWriter, header: CSFileHeader, header_size: int
+        self, header: CSFileHeader, header_size: int, writer: BinaryWriter
     ) -> None:
         writer.write_int16(header.cskind)
         writer.write_int32(self._calculate_v2_extent(header_size))
 
     def _write_header_bytes_v3(
-        self, writer: BinaryWriter, header: CSFileHeader, header_size: int
+        self, header: CSFileHeader, header_size: int, writer: BinaryWriter
     ) -> None:
         writer.write_string(header.site_code)
         writer.write_int32(self._calculate_v3_extent(header_size))
 
     def _write_header_bytes_v4(
-        self, writer: BinaryWriter, header: CSFileHeader, header_size: int
+        self, header: CSFileHeader, header_size: int, writer: BinaryWriter
     ) -> None:
         writer.write_int32(header.cover_minutes)
         writer.write_int32(header.deleted_source)
@@ -263,7 +263,7 @@ class CSFileWriter:
         writer.write_int32(self._calculate_v4_extent(header_size))
 
     def _write_header_bytes_v5(
-        self, writer: BinaryWriter, header: CSFileHeader, header_size: int
+        self, header: CSFileHeader, header_size: int, writer: BinaryWriter
     ) -> None:
         writer.write_int32(header.output_interval)
         writer.write_string(header.create_type_code)
@@ -275,8 +275,8 @@ class CSFileWriter:
 
     def _write_header_bytes_v6(
         self,
-        writer: BinaryWriter,
         blocks: dict,
+        writer: BinaryWriter,
     ) -> None:
         writer.write_uint32(self._calculate_block_section_size(blocks))
         for block_key, block in blocks.items():
@@ -284,7 +284,7 @@ class CSFileWriter:
             writer.write_uint32(len(block))
             writer.write_bytes(block)
 
-    def _write_header(self, writer: BinaryWriter, header: CSFileHeader) -> None:
+    def _write_header(self, header: CSFileHeader, writer: BinaryWriter) -> None:
         if header.version < 1 or header.version > 6:
             raise ValueError(
                 "Detected file version lies outside of accepted range"
@@ -292,28 +292,28 @@ class CSFileWriter:
 
         blocks = self._serialize_blocks(header)
         header_size = self._calculate_header_size(blocks, header.version)
-        self._write_header_bytes_v1(writer, header, header_size)
+        self._write_header_bytes_v1(header, header_size, writer)
         if header.version == 1:  # Detected file version v1
             return
 
-        self._write_header_bytes_v2(writer, header, header_size)
+        self._write_header_bytes_v2(header, header_size, writer)
         if header.version == 2:  # Detected file version v2
             return
 
-        self._write_header_bytes_v3(writer, header, header_size)
+        self._write_header_bytes_v3(header, header_size, writer)
         if header.version == 3:  # Detected file version v3
             return
 
-        self._write_header_bytes_v4(writer, header, header_size)
+        self._write_header_bytes_v4(header, header_size, writer)
         if header.version == 4:  # Detected file version v4
             return
 
-        self._write_header_bytes_v5(writer, header, header_size)
+        self._write_header_bytes_v5(header, header_size, writer)
         if header.version == 5:  # Detected file version v5
             return
 
         # File version must be v6
-        self._write_header_bytes_v6(writer, header, blocks)
+        self._write_header_bytes_v6(blocks, writer)
 
     def _write_real_row(self, row: np.ndarray, writer: BinaryWriter) -> None:
         dtype = np.dtype("float32").newbyteorder(">")

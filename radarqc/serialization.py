@@ -95,10 +95,10 @@ class BinaryWriter:
         self._formatter = _Formatter(byteorder)
 
     def write_string(self, buff: str) -> None:
-        self._write_bytes(buff.encode())
+        self._file.write(buff.encode())
 
     def write_bytes(self, buff: bytes) -> None:
-        self._write_bytes(buff)
+        self._file.write(buff)
 
     def write_char(self, buff: Union[bytes, Iterable[bytes]]) -> None:
         return self._write(buff, "c")
