@@ -4,6 +4,7 @@ from typing import BinaryIO, Optional
 import numpy as np
 
 from radarqc.header import CSFileHeader
+from radarqc.xarray import to_xarray, xr
 from radarqc.processing import Identity, SignalProcessor
 from radarqc.reader import CSFileReader
 from radarqc.writer import CSFileWriter
@@ -56,6 +57,9 @@ class CSFile:
     def cross23(self) -> np.ndarray:
         """Cross-spectrum from antenna 2 & 3."""
         return self._spectrum.cross23
+
+    def to_xarray(self) -> xr.Dataset:
+        return to_xarray(self.header, self.spectrum)
 
 
 def load(

@@ -2,6 +2,7 @@ import argparse
 
 import matplotlib.pyplot as plt
 import numpy as np
+import xarray as xr
 
 from radarqc import csfile
 from radarqc.processing import GainCalculator
@@ -15,28 +16,19 @@ def getargs() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def plot_spectrum(cs: csfile.CSFile) -> None:
-    assert cs.header.version >= 4
-
-    ranges = cs.header.range_cell_dist_km * np.arange(
-        0, cs.header.num_range_cells
-    )
-
-    freqs = (
-        cs.header.rep_freq_mhz
-        + 0.001
-        * cs.header.bandwidth_khz
-        * np.linspace(-0.5, 0.5, num=cs.header.num_doppler_cells, endpoint=True)
-    )
-
-    spectra = cs.antenna1, cs.antenna2, cs.antenna3
+def plot_spectrum(ds: xr.Dataset) -> None:
+    spectra = ds.antenna1, ds.antenna2, ds.antenna3
 
     # Plot each slice as an independent subplot
     fig, axes = plt.subplots(nrows=len(spectra), ncols=1)
     for i, (spectrum, ax) in enumerate(zip(spectra, axes.flat)):
-        ax.pcolor(freqs, ranges, spectrum)
-        ax.set_ylabel("Range [km]")
-        ax.set_xlabel("Frequency [MHz]")
+        ax.pcolor(ds.radiation_frequency, ds.range, spectrum)
+        ax.set_ylabel("{} [{}]".format(ds.range.name, ds.range.units))
+        ax.set_xlabel(
+            "{} [{}]".format(
+                ds.radiation_frequency.name, ds.radiation_frequency.units
+            )
+        )
         ax.set_title(
             "Range-Dependent Power Spectral Density (Antenna {})".format(i + 1)
         )
@@ -48,7 +40,7 @@ def plot_spectrum(cs: csfile.CSFile) -> None:
 def main():
     config = getargs()
     with open(config.path, "rb") as f:
-        plot_spectrum(cs=csfile.load(f, preprocess=GainCalculator()))
+        plot_spectrum(csfile.load(f, preprocess=GainCalculator()).to_xarray())
 
 
 if __name__ == "__main__":
