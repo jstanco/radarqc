@@ -25,10 +25,10 @@ from radarqc import csfile
 from radarqc.processing import Abs, CompositeProcessor, GainCalculator
 
 def example():
-    reference_dbm = 34.2
+    reference_gain_db = 4.2
     path = "example.cs"
     preprocess = CompositeProcessor(
-        Abs(), GainCalculator(reference=reference_dbm)
+        Abs(), GainCalculator(reference=reference_gain_db)
     )
     
     # Read binary file into 'CSFile' object.
