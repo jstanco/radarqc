@@ -15,7 +15,7 @@ class SignalProcessor(abc.ABC):
 
 
 class GainCalculator(SignalProcessor):
-    """Convert the signal from raw Voltages into dB, given some
+    """Convert the signal from voltage-squared into dBW, given an optional
     reference gain as a baseline.  The impedance argument specifies the
     impedance of the rf frontend"""
 
@@ -24,13 +24,15 @@ class GainCalculator(SignalProcessor):
         self._impedance = impedance
 
     def _process(self, signal: np.ndarray) -> np.ndarray:
+        # The input already has units volts**2.  We produce watts by dividing
+        # by the rf frontend impedance.
         return 10 * np.log10(signal / self._impedance) - self._reference
 
 
 class Rectifier(SignalProcessor):
     """Zeros out all negative parts of a signal.  This can be useful
     for dealing with negative values in the signal, which are added to
-    indicate outliers in the raw voltage data"""
+    indicate outliers in the raw voltage**2 data"""
 
     def _process(self, signal: np.ndarray) -> np.ndarray:
         return signal.clip(min=0)
@@ -39,7 +41,7 @@ class Rectifier(SignalProcessor):
 class Abs(SignalProcessor):
     """Calculates absolute value of a signal.  This can be useful
     for dealing with negative values in the signal, which are added to
-    indicate outliers in the raw voltage data"""
+    indicate outliers in the raw voltage**2 data"""
 
     def _process(self, signal: np.ndarray) -> np.ndarray:
         return np.abs(signal)
