@@ -17,7 +17,7 @@ class CSFileHeader:
     deleted_source: Optional[bool] = None
     override_source: Optional[bool] = None
     start_freq_mhz: Optional[float] = None
-    rep_freq_mhz: Optional[float] = None
+    rep_freq_hz: Optional[float] = None
     bandwidth_khz: Optional[float] = None
     sweep_up: Optional[bool] = None
     num_doppler_cells: Optional[int] = None

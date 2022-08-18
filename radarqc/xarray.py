@@ -17,35 +17,52 @@ from radarqc.header import CSFileHeader
 from radarqc.spectrum import Spectrum
 
 
-_FREQUENCY_VARIABLE = "radiation_frequency"
-_RANGE_VARIABLE = "range"
+_FREQUENCY_NAME = "radiation_frequency"
+_RANGE_NAME = "range"
+_FREQUENCY_UNITS = "Hz"
+_RANGE_UNITS = "m"
+_ONE_MHZ = 1e6
+_ONE_KHZ = 1e3
 
 
 def _make_dims() -> List[str]:
-    return [_RANGE_VARIABLE, _FREQUENCY_VARIABLE]
+    return [_RANGE_NAME, _FREQUENCY_NAME]
 
 
 def _make_frequency(header: CSFileHeader) -> xr.Variable:
-    return xr.Variable(
-        dims=_FREQUENCY_VARIABLE,
-        data=1e6 * header.rep_freq_mhz
-        + 1e3
+    start_frequency = _ONE_MHZ * header.start_freq_mhz
+    delta_frequency = (
+        _ONE_KHZ
         * header.bandwidth_khz
-        * np.linspace(-0.5, 0.5, num=header.num_doppler_cells, endpoint=True),
-        attrs=dict(units="Hz"),
+        * (
+            np.linspace(0.0, 1.0, num=header.num_doppler_cells, endpoint=True)
+            if header.sweep_up
+            else np.linspace(
+                -1.0, 0.0, num=header.num_doppler_cells, endpoint=True
+            )
+        )
+    )
+
+    return xr.Variable(
+        dims=_FREQUENCY_NAME,
+        data=start_frequency + delta_frequency,
+        attrs=dict(units=_FREQUENCY_UNITS),
     )
 
 
 def _make_distance(header: CSFileHeader) -> xr.Variable:
     return xr.Variable(
-        dims=_RANGE_VARIABLE,
+        dims=_RANGE_NAME,
         data=1000.0
         * header.range_cell_dist_km
-        * np.arange(
-            0,
-            header.num_range_cells,
+        * (
+            np.arange(
+                0,
+                header.num_range_cells,
+            )
+            + (header.first_range_cell - 1)
         ),
-        attrs=dict(units="m"),
+        attrs=dict(units=_RANGE_UNITS),
     )
 
 
@@ -101,5 +118,19 @@ def to_xarray(header: CSFileHeader, spectrum: Spectrum) -> xr.Dataset:
             range=_make_distance(header),
             radiation_frequency=_make_frequency(header),
         ),
-        attrs=dict(reference_time=header.timestamp),
+        attrs=dict(
+            timestamp=header.timestamp,
+            site_code=header.site_code,
+            cover_minutes=header.cover_minutes,
+            deleted_source=header.deleted_source,
+            override_source=header.override_source,
+            rep_freq_hz=header.rep_freq_hz,
+            output_interval=header.output_interval,
+            create_type_code=header.create_type_code,
+            creator_version=header.creator_version,
+            num_active_channels=header.num_active_channels,
+            num_spectra_channels=header.num_spectra_channels,
+            active_channels=header.active_channels,
+            **header.blocks
+        ),
     )

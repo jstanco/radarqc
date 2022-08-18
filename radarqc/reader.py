@@ -267,7 +267,7 @@ class CSFileReader:
         header.deleted_source = bool(reader.read_int32())
         header.override_source = bool(reader.read_int32())
         header.start_freq_mhz = reader.read_float()
-        header.rep_freq_mhz = reader.read_float()
+        header.rep_freq_hz = reader.read_float()
         header.bandwidth_khz = reader.read_float()
         header.sweep_up = bool(reader.read_int32())
         header.num_doppler_cells = reader.read_int32()
