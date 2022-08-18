@@ -24,7 +24,7 @@ class GainCalculator(SignalProcessor):
         self._impedance = impedance
 
     def _process(self, signal: np.ndarray) -> np.ndarray:
-        return 10 * np.log10(signal**2 / self._impedance) - self._reference
+        return 10 * np.log10(signal / self._impedance) - self._reference
 
 
 class Rectifier(SignalProcessor):

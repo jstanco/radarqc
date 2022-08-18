@@ -5,7 +5,7 @@ import numpy as np
 import xarray as xr
 
 from radarqc import csfile
-from radarqc.processing import GainCalculator
+from radarqc.processing import Abs, CompositeProcessor, GainCalculator
 
 
 def getargs() -> argparse.Namespace:
@@ -40,7 +40,8 @@ def plot_spectrum(ds: xr.Dataset) -> None:
 def main():
     config = getargs()
     with open(config.path, "rb") as f:
-        plot_spectrum(csfile.load(f, preprocess=GainCalculator()).to_xarray())
+        preprocess = CompositeProcessor(Abs(), GainCalculator())
+        plot_spectrum(csfile.load(f, preprocess=preprocess).to_xarray())
 
 
 if __name__ == "__main__":

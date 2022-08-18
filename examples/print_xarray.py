@@ -1,9 +1,6 @@
 import argparse
 
-import matplotlib.pyplot as plt
-
 from radarqc import csfile
-from radarqc.processing import GainCalculator
 
 
 def getargs() -> argparse.Namespace:
@@ -17,7 +14,7 @@ def getargs() -> argparse.Namespace:
 def main():
     config = getargs()
     with open(config.path, "rb") as f:
-        ds = csfile.load(f, preprocess=GainCalculator()).to_xarray()
+        ds = csfile.load(f).to_xarray()
         print(ds)
 
 
