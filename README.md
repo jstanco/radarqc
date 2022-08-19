@@ -43,7 +43,7 @@ def example():
 
 The loaded `CSFile` object can be used to access file metadata via the `header` attribute, as well as various attributes for accessing data from individual antenna and cross-antenna spectra with a `numpy.ndarray` data type.
 
-The `radarqc` package also supports conversion from `CSFile` objects to [xarray.Dataset](https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html) objects.  This interoperability allows for easy conversion from cross-spectrum files to [NetCDF](https://www.unidata.ucar.edu/software/netcdf/).
+The `radarqc` package also supports conversion from `CSFile` objects to [xarray.Dataset](https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html) objects.  This interoperability allows for easy conversion from cross-spectrum files to [NetCDF](https://www.unidata.ucar.edu/software/netcdf/) files.
 
 ```python3
 import matplotlib.pylot as plt
