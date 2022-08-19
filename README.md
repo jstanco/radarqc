@@ -1,7 +1,6 @@
 # radarqc
 
-Python utilities for loading and processing HF radar spectra in Cross-Spectrum file format.
-See file specification [here](http://support.codar.com/Technicians_Information_Page_for_SeaSondes/Manuals_Documentation_Release_8/File_Formats/File_Cross_Spectra_V6.pdf).
+Python utilities for loading and processing HF radar spectra in [Cross-Spectrum](http://support.codar.com/Technicians_Information_Page_for_SeaSondes/Manuals_Documentation_Release_8/File_Formats/File_Cross_Spectra_V6.pdf) file format.
 
 ## Overview
 This repository provides a python package capable of:
