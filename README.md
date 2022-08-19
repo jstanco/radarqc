@@ -7,8 +7,9 @@ See file specification [here](http://support.codar.com/Technicians_Information_P
 This repository provides a python package capable of:
   - Loading Cross-Spectrum files as Python objects containing headers and antenna spectra.
   - Serializing Python object representation as Cross-Spectrum files.
-  - Preprocessing antenna spectra to calculate gain and deal with outliers.
+  - Extensible preprocessing interface for antenna spectra.
   - Filtering spectra to reduce the effects of background noise on wave velocity calculation.
+  - Conversion to `xarray.Dataset` objects that may be converted to NetCDF files.
 
 ## Installation
 ```bash
