@@ -9,15 +9,15 @@ This repository provides a python package capable of:
   - Serializing Python object representation as Cross-Spectrum files.
   - Extensible preprocessing interface for antenna spectra.
   - Filtering spectra to reduce the effects of background noise on wave velocity calculation.
-  - Conversion to `xarray.Dataset` objects that may be converted to NetCDF files.
+  - Conversion to [xarray.Dataset](https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html) objects that may be converted to [NetCDF](https://www.unidata.ucar.edu/software/netcdf/) files.
 
 ## Installation
-```bash
+```bash)
 pip3 install radarqc
 ```
 
 ## Example Usage
-The radar used to generate cross-spectrum data can sometimes detect outliers.  This is indicated by 
+The radar used to generate cross-spectrum data can sometimes detect outliers.  This is indicated by )
 negative signal values in the data.  This example loads a file using the `Abs` method to ignore the outliers,
 computes the log-power (dBW), then writes the result back into a file.
 
