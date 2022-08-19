@@ -15,8 +15,8 @@ pip3 install radarqc
 ```
 
 ## Example Usage
-The radar used to generate cross-spectrum data can sometimes detect outliers.  This is indicated by )
-negative signal values in the data.  This example loads a file using the `Abs` method to ignore the outliers,
+The radar equipment used to generate cross-spectrum data can sometimes detect outliers, which are indicated by
+negative signal values in the data.  This example loads a file using the `Abs` preprocessor to ignore the outliers,
 computes the log-power (dBW), then writes the result back into a file.
 
 ```python3
