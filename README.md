@@ -41,7 +41,28 @@ def example():
         csfile.dump(cs, f)
 ```
 
-The loaded `CSFile` object can be used to access file metadata via the `header` attribute,
-as well as various attributes for accessing data from individual antenna and cross-antenna spectra
-with a `numpy.ndarray` data type.
+The loaded `CSFile` object can be used to access file metadata via the `header` attribute, as well as various attributes for accessing data from individual antenna and cross-antenna spectra with a `numpy.ndarray` data type.
+
+The `radarqc` package also supports conversion from `CSFile` objects to [xarray.Dataset](https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html) objects.  This interoperability allows for easy conversion from cross-spectrum files to [NetCDF](https://www.unidata.ucar.edu/software/netcdf/).
+
+```python3
+import matplotlib.pylot as plt
+
+from radarqc import csfile
+
+def example():
+    with open(input_path, "rb") as f:
+        # Load cross-spectrum file as xarray dataset.
+        ds = csfile.load(f).to_xarray()
+
+    # Print human-readable representation of xarray dataset.
+    print(ds)
+
+    # Plot antenna1 data.
+    ds.antenna1.plot()
+    plt.show()
+
+    # Save entire cross-spectrum file as netcdf file.
+    ds.to_netcdf(output_path)
+```
 
