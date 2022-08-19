@@ -49,6 +49,7 @@ The `radarqc` package also supports conversion from `CSFile` objects to [xarray.
 import matplotlib.pylot as plt
 
 from radarqc import csfile
+from radarqc.processing import calculate_gain
 
 def example():
     with open(input_path, "rb") as f:
@@ -58,11 +59,12 @@ def example():
     # Print human-readable representation of xarray dataset.
     print(ds)
 
-    # Plot antenna1 data.
-    ds.antenna1.plot()
+    # Plot antenna1 log-power (gain) in dB.
+    calculate_gain(ds.antenna1).plot()
     plt.show()
 
     # Save xarray dataset as netcdf file.
     ds.to_netcdf(output_path)
 ```
 
+![alt text](https://github.com/jstanco/radarqc/blob/dev/docs/antenna1.jpg?raw=true)

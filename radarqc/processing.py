@@ -14,6 +14,12 @@ class SignalProcessor(abc.ABC):
         """Subclasses will override this functionality"""
 
 
+def calculate_gain(x, reference: float = 0, impedance: float = 50):
+    # The input already has units volts**2.  We produce watts by dividing
+    # by the rf frontend impedance.
+    return 10 * np.log10(x / impedance) - reference
+
+
 class GainCalculator(SignalProcessor):
     """Convert the signal from voltage-squared into dBW, given an optional
     reference gain as a baseline.  The impedance argument specifies the
@@ -24,9 +30,7 @@ class GainCalculator(SignalProcessor):
         self._impedance = impedance
 
     def _process(self, signal: np.ndarray) -> np.ndarray:
-        # The input already has units volts**2.  We produce watts by dividing
-        # by the rf frontend impedance.
-        return 10 * np.log10(signal / self._impedance) - self._reference
+        return calculate_gain(signal, self._reference, self._impedance)
 
 
 class Rectifier(SignalProcessor):
