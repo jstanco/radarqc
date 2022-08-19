@@ -3,12 +3,11 @@
 Python utilities for loading and processing HF radar spectra in [Cross-Spectrum](http://support.codar.com/Technicians_Information_Page_for_SeaSondes/Manuals_Documentation_Release_8/File_Formats/File_Cross_Spectra_V6.pdf) file format.
 
 ## Overview
-This repository provides a python package capable of:
-  - Loading Cross-Spectrum files as Python objects containing headers and antenna spectra.
-  - Serializing Python object representation as Cross-Spectrum files.
-  - Extensible preprocessing interface for antenna spectra.
-  - Filtering spectra to reduce the effects of background noise on wave velocity calculation.
-  - Conversion to [xarray.Dataset](https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html) objects that may be converted to [NetCDF](https://www.unidata.ucar.edu/software/netcdf/) files.
+This repository provides a python package containing:
+  - Functionality for (De)serializing Cross-Spectrum files (to)from Python objects
+  - Extensible preprocessing interface for antenna spectra including outlier removal.
+  - Extensible spectral filter interface for reducing the effects of background noise on wave velocity calculation.
+  - Conversion from Python object representation to [xarray.Dataset](https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html) objects that may be converted to [NetCDF](https://www.unidata.ucar.edu/software/netcdf/) files.
 
 ## Installation
 ```bash)
