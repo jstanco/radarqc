@@ -62,7 +62,7 @@ def example():
     ds.antenna1.plot()
     plt.show()
 
-    # Save entire cross-spectrum file as netcdf file.
+    # Save xarray dataset as netcdf file.
     ds.to_netcdf(output_path)
 ```
 
