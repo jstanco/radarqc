@@ -61,10 +61,14 @@ def example():
 
     # Plot antenna1 log-power (gain) in dB.
     calculate_gain(ds.antenna1).plot()
+
+    plt.tight_layout()
     plt.show()
 
     # Save xarray dataset as netcdf file.
     ds.to_netcdf(output_path)
 ```
+
+When converted from `CSFile` objects, `xarray.Dataset` objects will be automagically populated with range and frequency coordinates derived from the cross-spectra file metadata, which enables easy and accurate plotting of individual antenna spectra.  The plot from the above example will look like the following:
 
 ![alt text](https://github.com/jstanco/radarqc/blob/dev/docs/antenna1.jpg?raw=true)
