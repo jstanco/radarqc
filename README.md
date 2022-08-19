@@ -72,5 +72,5 @@ def example():
 When converted from `CSFile` objects, `xarray.Dataset` objects will be automagically populated with range and frequency coordinates derived from the cross-spectra file metadata, which enables easy and accurate plotting of individual antenna spectra.  The plot from the above example will look like the following:
 
 <p align="center">
-  <img src="https://github.com/jstanco/radarqc/blob/dev/docs/antenna1.jpg?raw=true", alt="Antenna 1 Self-Spectrum Log Power/>
+  <img src="https://github.com/jstanco/radarqc/blob/dev/docs/antenna1.jpg?raw=true" />
 </p>
