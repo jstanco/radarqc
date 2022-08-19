@@ -1,10 +1,10 @@
 import glob
-import matplotlib.pyplot as plt
-import numpy as np
 import os
 import time
 
-from radarqc.csfile import CSFile
+import matplotlib.pyplot as plt
+import numpy as np
+
 from radarqc.dataset import DataSet
 from radarqc.filtering import (
     NoiseFilter,

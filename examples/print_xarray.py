@@ -14,8 +14,7 @@ def getargs() -> argparse.Namespace:
 def main():
     config = getargs()
     with open(config.path, "rb") as f:
-        ds = csfile.load(f).to_xarray()
-        print(ds)
+        print(csfile.load(f).to_xarray())
 
 
 if __name__ == "__main__":
