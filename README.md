@@ -82,7 +82,7 @@ One constraint of NetCDF is lack of support for complex-valued data.  This poses
 
 ### Full support for variable metadata
 
-The Cross-Spectra file format version 6 supports the addition of variable key-value based metadata.  The `radarqc.csfile` module *does* contain methods for handling all possible keys.  However, it does not interpret these fields when converting to xarray, preferring instead to create a global dataset attribute that maps to a the key-value data as a `JSON` string.  However, it does not enable first-class support for these variable key/values as xarray dataset attributes.
+The Cross-Spectra file format version 6 supports the addition of variable key-value based metadata.  The `radarqc.csfile` module *does* contain methods for handling all possible keys.  However, it does not interpret these fields when converting to xarray, preferring instead to create a global dataset attribute that maps to a the key-value data as a `JSON` string.  In the future, it would be nice to enable first-class support for these variable key/values as xarray dataset attributes.
 
 ### Exploring Options for HF Radar Data coordinate conventions.
 
